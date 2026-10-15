@@ -20,6 +20,7 @@ Chart.register(...registerables);
 interface DashboardViewProps {
   data: DashboardData | null;
   loading: boolean;
+  theme: 'light' | 'dark';
   onRefresh: () => void;
   onFilterLowStock: () => void;
   onQuickRestock: (productId: number) => void;
@@ -29,6 +30,7 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   data,
   loading,
+  theme,
   onRefresh,
   onFilterLowStock,
   onQuickRestock,
@@ -38,6 +40,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const movementCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const categoryChartRef = useRef<Chart | null>(null);
   const movementChartRef = useRef<Chart | null>(null);
+  const chartTextColor = theme === 'dark' ? '#a8b4c8' : '#64748b';
+  const chartGridColor = theme === 'dark' ? '#334155' : '#e2e8f0';
+  const chartSurfaceColor = theme === 'dark' ? '#172033' : '#ffffff';
 
   // Render Category Doughnut Chart
   useEffect(() => {
@@ -60,7 +65,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             data: values,
             backgroundColor: colors.slice(0, labels.length),
             borderWidth: 2,
-            borderColor: '#ffffff',
+            borderColor: chartSurfaceColor,
             hoverOffset: 6,
           },
         ],
@@ -74,6 +79,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             labels: {
               boxWidth: 12,
               padding: 12,
+              color: chartTextColor,
               font: { family: "'Inter', sans-serif", size: 11 },
             },
           },
@@ -94,7 +100,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return () => {
       if (categoryChartRef.current) categoryChartRef.current.destroy();
     };
-  }, [data]);
+  }, [data, chartSurfaceColor, chartTextColor]);
 
   // Render Movement Trends Bar Chart
   useEffect(() => {
@@ -154,19 +160,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         scales: {
           x: {
             grid: { display: false },
-            ticks: { font: { family: "'Inter', sans-serif", size: 11 } },
+            ticks: { color: chartTextColor, font: { family: "'Inter', sans-serif", size: 11 } },
           },
           y: {
             beginAtZero: true,
-            grid: { color: '#f1f5f9' },
-            ticks: { precision: 0, font: { family: "'Inter', sans-serif", size: 11 } },
+            grid: { color: chartGridColor },
+            ticks: { color: chartTextColor, precision: 0, font: { family: "'Inter', sans-serif", size: 11 } },
           },
         },
         plugins: {
           legend: {
             position: 'top',
             align: 'end',
-            labels: { boxWidth: 12, font: { family: "'Inter', sans-serif", size: 11 } },
+            labels: {
+              boxWidth: 12,
+              color: chartTextColor,
+              font: { family: "'Inter', sans-serif", size: 11 },
+            },
           },
         },
       },
@@ -175,7 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return () => {
       if (movementChartRef.current) movementChartRef.current.destroy();
     };
-  }, [data]);
+  }, [data, chartGridColor, chartTextColor]);
 
   if (loading && !data) {
     return (
