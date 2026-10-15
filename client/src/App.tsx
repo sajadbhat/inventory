@@ -23,10 +23,17 @@ import type {
   ViewTab,
 } from './types/inventory';
 
+type ThemeMode = 'light' | 'dark';
+
 export function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const savedTheme = window.localStorage.getItem('stockflow-theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   // Entities
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -302,8 +309,18 @@ export function App() {
   const totalAttentionCount =
     dashboardData ? dashboardData.summary.lowStockCount + dashboardData.summary.outOfStockCount : 0;
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#0b1120' : '#f4f7fb',
+    );
+    window.localStorage.setItem('stockflow-theme', theme);
+  }, [theme]);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="app-shell flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar Navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -338,6 +355,8 @@ export function App() {
             setEditingProduct(null);
             setProductModalOpen(true);
           }}
+          theme={theme}
+          onToggleTheme={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
         />
 
         <main className="flex-1 p-6 space-y-6 max-w-7xl w-full mx-auto">
@@ -345,6 +364,7 @@ export function App() {
             <DashboardView
               data={dashboardData}
               loading={loading}
+              theme={theme}
               onRefresh={fetchDashboard}
               onFilterLowStock={() => {
                 setCurrentTab('products');
